@@ -120,19 +120,17 @@ const App = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="min-h-screen" role="application">
-        <main 
-          className={`max-w-4xl mx-auto p-4 ${
-            isDarkMode ? 'dark bg-gray-900 text-white' : 'bg-white'
-          }`}
-        >
+      <div className="min-h-screen">
+        <main className={`max-w-4xl mx-auto p-4 ${
+          isDarkMode ? 'dark bg-gray-900 text-white' : 'bg-white'
+        }`}>
           <header className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Grocery App</h1>
             <ThemeToggle />
           </header>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+            <section>
               <ProductForm onAdd={handleAddProduct} categories={categories} />
               <CategoryManager
                 categories={categories}
@@ -140,9 +138,9 @@ const App = () => {
                 onEditCategory={handleEditCategory}
                 onDeleteCategory={handleDeleteCategory}
               />
-            </div>
+            </section>
 
-            <div>
+            <section>
               <SearchBar value={searchTerm} onChange={setSearchTerm} />
               <CategoryFilter
                 categories={categories}
@@ -154,7 +152,7 @@ const App = () => {
                 onDelete={handleDeleteProduct}
                 onMove={handleMoveProduct}
               />
-            </div>
+            </section>
           </div>
         </main>
       </div>
