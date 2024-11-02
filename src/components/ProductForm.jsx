@@ -48,7 +48,7 @@ export const ProductForm = ({ onAdd, categories }) => {
       />
       <button 
         type="submit"
-        className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
       >
         Add Product
       </button>

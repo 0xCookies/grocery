@@ -41,7 +41,7 @@ export const CategoryManager = ({ categories, onAddCategory, onEditCategory, onD
         />
         <button 
           type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
         >
           Add
         </button>
@@ -78,13 +78,13 @@ export const CategoryManager = ({ categories, onAddCategory, onEditCategory, onD
                 <span className="flex-1">{category}</span>
                 <button
                   onClick={() => handleEdit(category)}
-                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => onDeleteCategory(category)}
-                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                  className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded"
                 >
                   Delete
                 </button>
