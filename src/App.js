@@ -120,10 +120,8 @@ const App = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className={`min-h-screen transition-colors duration-200 ${
-        isDarkMode ? 'dark bg-gray-900 text-white' : 'bg-white text-gray-900'
-      }`}>
-        <div className="max-w-4xl mx-auto p-4">
+      <div className={`min-h-screen ${isDarkMode ? 'dark bg-gray-900 text-white' : 'bg-white'}`}>
+        <main className="max-w-4xl mx-auto p-4" role="main">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Grocery App</h1>
             <ThemeToggle />
@@ -151,15 +149,22 @@ const App = () => {
                 selected={filterCategory}
                 onChange={setFilterCategory}
               />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="mt-2 p-2 border rounded"
-              >
-                <option value="name">Sort by Name</option>
-                <option value="category">Sort by Category</option>
-                <option value="date">Sort by Date Added</option>
-              </select>
+              <div>
+                <label htmlFor="sortProducts" className="block mb-1 text-sm font-medium">
+                  Sort Products
+                </label>
+                <select
+                  id="sortProducts"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="mt-2 p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+                  aria-label="Sort products by"
+                >
+                  <option value="name">Sort by Name</option>
+                  <option value="category">Sort by Category</option>
+                  <option value="date">Sort by Date Added</option>
+                </select>
+              </div>
               
               <ProductList
                 products={filteredProducts}
@@ -168,7 +173,7 @@ const App = () => {
               />
             </div>
           </div>
-        </div>
+        </main>
       </div>
     </DndProvider>
   );

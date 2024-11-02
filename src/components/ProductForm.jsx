@@ -19,33 +19,54 @@ export const ProductForm = ({ onAdd, categories }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && <div className="text-red-500">{error}</div>}
-      <input
-        type="text"
-        value={product.name}
-        onChange={(e) => setProduct({ ...product, name: e.target.value })}
-        placeholder="Product name"
-        className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700 
-                   dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <select
-        value={product.category}
-        onChange={(e) => setProduct({ ...product, category: e.target.value })}
-        className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
-        required
-      >
-        <option value="">Select category</option>
-        {categories.map(cat => (
-          <option key={cat} value={cat}>{cat}</option>
-        ))}
-      </select>
-      <input
-        type="number"
-        value={product.quantity}
-        onChange={(e) => setProduct({ ...product, quantity: parseInt(e.target.value) })}
-        min="1"
-        className="w-full p-2 border rounded"
-      />
+      <div>
+        <label htmlFor="productName" className="block mb-1 text-sm font-medium">
+          Product Name
+        </label>
+        <input
+          id="productName"
+          type="text"
+          value={product.name}
+          onChange={(e) => setProduct({ ...product, name: e.target.value })}
+          placeholder="Enter product name"
+          className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+          required
+        />
+      </div>
+
+      <div>
+        <label htmlFor="productCategory" className="block mb-1 text-sm font-medium">
+          Category
+        </label>
+        <select
+          id="productCategory"
+          value={product.category}
+          onChange={(e) => setProduct({ ...product, category: e.target.value })}
+          className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+          required
+        >
+          <option value="">Select category</option>
+          {categories.map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="productQuantity" className="block mb-1 text-sm font-medium">
+          Quantity
+        </label>
+        <input
+          id="productQuantity"
+          type="number"
+          min="1"
+          value={product.quantity}
+          onChange={(e) => setProduct({ ...product, quantity: parseInt(e.target.value) })}
+          className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+          required
+        />
+      </div>
+
       <button 
         type="submit"
         className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
