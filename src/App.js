@@ -120,12 +120,16 @@ const App = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className={`min-h-screen ${isDarkMode ? 'dark bg-gray-900 text-white' : 'bg-white'}`}>
-        <main className="max-w-4xl mx-auto p-4" role="main">
-          <div className="flex justify-between items-center mb-6">
+      <div className="min-h-screen" role="application">
+        <main 
+          className={`max-w-4xl mx-auto p-4 ${
+            isDarkMode ? 'dark bg-gray-900 text-white' : 'bg-white'
+          }`}
+        >
+          <header className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Grocery App</h1>
             <ThemeToggle />
-          </div>
+          </header>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -136,10 +140,6 @@ const App = () => {
                 onEditCategory={handleEditCategory}
                 onDeleteCategory={handleDeleteCategory}
               />
-              <div className="mt-4 space-x-2">
-                <button onClick={undo} disabled={!products.length}>Undo</button>
-                <button onClick={redo}>Redo</button>
-              </div>
             </div>
 
             <div>
@@ -149,23 +149,6 @@ const App = () => {
                 selected={filterCategory}
                 onChange={setFilterCategory}
               />
-              <div>
-                <label htmlFor="sortProducts" className="block mb-1 text-sm font-medium">
-                  Sort Products
-                </label>
-                <select
-                  id="sortProducts"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="mt-2 p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
-                  aria-label="Sort products by"
-                >
-                  <option value="name">Sort by Name</option>
-                  <option value="category">Sort by Category</option>
-                  <option value="date">Sort by Date Added</option>
-                </select>
-              </div>
-              
               <ProductList
                 products={filteredProducts}
                 onDelete={handleDeleteProduct}
