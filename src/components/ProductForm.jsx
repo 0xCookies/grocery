@@ -25,12 +25,14 @@ export const ProductForm = ({ onAdd, categories }) => {
         value={product.name}
         onChange={(e) => setProduct({ ...product, name: e.target.value })}
         placeholder="Product name"
-        className="w-full p-2 border rounded"
+        className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700 
+                   dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <select
         value={product.category}
         onChange={(e) => setProduct({ ...product, category: e.target.value })}
-        className="w-full p-2 border rounded"
+        className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700 
+                   dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <option value="">Select category</option>
         {categories.map(cat => (
