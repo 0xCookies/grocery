@@ -9,6 +9,7 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useUndoRedo } from './hooks/useUndoRedo';
 import { useTheme } from './context/ThemeContext';
+import { CategoryManager } from './components/CategoryManager';
 
 const App = () => {
   // State management
@@ -18,6 +19,7 @@ const App = () => {
   const [filterCategory, setFilterCategory] = useLocalStorage('filterCategory', '');
   const [sortBy, setSortBy] = useLocalStorage('sortBy', 'name');
   const { isDarkMode, toggleTheme } = useTheme();
+  const [categories, setCategories] = useLocalStorage('categories', ['Fruits', 'Vegetables', 'Dairy']);
 
   // Sync products with undo/redo state
   useEffect(() => {
@@ -25,11 +27,6 @@ const App = () => {
   }, [productState, setProducts]);
 
   // Memoized values
-  const categories = useMemo(() => 
-    [...new Set(products.map(p => p.category))],
-    [products]
-  );
-
   const filteredProducts = useMemo(() => 
     products
       .filter(product => (
@@ -86,6 +83,41 @@ const App = () => {
     setProductState(newProducts);
   };
 
+  const handleAddCategory = (newCategory) => {
+    if (!categories.includes(newCategory)) {
+      setCategories([...categories, newCategory]);
+    }
+  };
+
+  const handleEditCategory = (oldCategory, newCategory) => {
+    if (!categories.includes(newCategory)) {
+      setCategories(categories.map(cat => 
+        cat === oldCategory ? newCategory : cat
+      ));
+      
+      // Update all products with the old category
+      setProducts(products.map(product => 
+        product.category === oldCategory 
+          ? { ...product, category: newCategory }
+          : product
+      ));
+    }
+  };
+
+  const handleDeleteCategory = (categoryToDelete) => {
+    // Optional: Show confirmation dialog
+    if (window.confirm(`Are you sure you want to delete "${categoryToDelete}"? This will remove the category from all products.`)) {
+      setCategories(categories.filter(cat => cat !== categoryToDelete));
+      
+      // Update products that had this category
+      setProducts(products.map(product => 
+        product.category === categoryToDelete 
+          ? { ...product, category: '' }
+          : product
+      ));
+    }
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={`min-h-screen transition-colors duration-200 ${
@@ -100,6 +132,12 @@ const App = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <ProductForm onAdd={handleAddProduct} categories={categories} />
+              <CategoryManager
+                categories={categories}
+                onAddCategory={handleAddCategory}
+                onEditCategory={handleEditCategory}
+                onDeleteCategory={handleDeleteCategory}
+              />
               <div className="mt-4 space-x-2">
                 <button onClick={undo} disabled={!products.length}>Undo</button>
                 <button onClick={redo}>Redo</button>
