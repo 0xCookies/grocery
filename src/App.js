@@ -79,6 +79,8 @@ const App = () => {
           dateAdded: new Date().toISOString(),
         }
       ]);
+    } catch (error) {
+      console.error('Failed to add product:', error);
     } finally {
       setIsLoading(false);
     }
@@ -156,11 +158,16 @@ const App = () => {
               </section>
 
               <section>
-                <SearchBar value={searchTerm} onChange={setSearchTerm} />
+                <SearchBar 
+                  value={searchTerm} 
+                  onChange={setSearchTerm}
+                  aria-label="Search products"
+                />
                 <CategoryFilter
                   categories={categories}
                   selected={filterCategory}
                   onChange={setFilterCategory}
+                  aria-label="Filter by category"
                 />
                 <ProductList
                   products={filteredProducts}
