@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { ErrorBoundary } from 'react-error-boundary';
 import { ProductForm } from './components/ProductForm';
 import { ProductList } from './components/ProductList';
 import { SearchBar } from './components/SearchBar';
@@ -10,8 +11,8 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useUndoRedo } from './hooks/useUndoRedo';
 import { useTheme } from './context/ThemeContext';
 import { CategoryManager } from './components/CategoryManager';
-import { ErrorBoundary } from 'react-error-boundary';
 import { debounce } from 'lodash';
+import { Toast } from './components/Toast';
 
 const App = () => {
   // State management
@@ -23,6 +24,9 @@ const App = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const [categories, setCategories] = useLocalStorage('categories', ['Fruits', 'Vegetables', 'Dairy']);
   const [isLoading, setIsLoading] = useState(false);
+  const [toasts, setToasts] = useState([]);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const debouncedSetSearchTerm = useMemo(
     () => debounce(setSearchTerm, 300),
@@ -68,26 +72,49 @@ const App = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [undo, redo]);
 
+  // Toast handling
+  const showToast = (message, type = 'info') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(toast => toast.id !== id));
+    }, 3000);
+  };
+
+  const removeToast = (id) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  // Confirmation dialog
+  const showConfirmDialog = (action) => {
+    setConfirmAction(() => action);
+    setIsConfirmDialogOpen(true);
+  };
+
+  // Enhanced product handling
   const handleAddProduct = async (newProduct) => {
     setIsLoading(true);
     try {
-      setProductState([
-        ...products,
-        {
-          ...newProduct,
-          id: Date.now(),
-          dateAdded: new Date().toISOString(),
-        }
-      ]);
+      const product = {
+        ...newProduct,
+        id: Date.now(),
+        dateAdded: new Date().toISOString(),
+      };
+      setProductState(prev => [...prev, product]);
+      showToast('Product added successfully', 'success');
     } catch (error) {
       console.error('Failed to add product:', error);
+      showToast('Failed to add product', 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteProduct = (id) => {
-    setProductState(products.filter(p => p.id !== id));
+    showConfirmDialog(() => {
+      setProductState(prev => prev.filter(p => p.id !== id));
+      showToast('Product deleted successfully', 'success');
+    });
   };
 
   const handleMoveProduct = (dragIndex, hoverIndex) => {
@@ -119,9 +146,9 @@ const App = () => {
     }
   };
 
+  // Enhanced category handling
   const handleDeleteCategory = (categoryToDelete) => {
-    if (window.confirm(`Are you sure you want to delete "${categoryToDelete}"?`)) {
-      // Batch state updates
+    showConfirmDialog(() => {
       const newCategories = categories.filter(cat => cat !== categoryToDelete);
       const newProducts = products.map(product => 
         product.category === categoryToDelete 
@@ -131,11 +158,19 @@ const App = () => {
       
       setCategories(newCategories);
       setProductState(newProducts);
-    }
+      showToast('Category deleted successfully', 'success');
+    });
   };
 
   return (
-    <ErrorBoundary fallback={<div>Something went wrong</div>}>
+    <ErrorBoundary
+      FallbackComponent={({ error }) => (
+        <div className="text-red-500 p-4">
+          <h2>Something went wrong:</h2>
+          <pre>{error.message}</pre>
+        </div>
+      )}
+    >
       <DndProvider backend={HTML5Backend}>
         <div className="min-h-screen">
           <main className={`max-w-4xl mx-auto p-4 ${
@@ -178,6 +213,46 @@ const App = () => {
             </div>
           </main>
         </div>
+
+        {/* Toast Container */}
+        <div className="fixed bottom-4 right-4 space-y-2">
+          {toasts.map(toast => (
+            <Toast key={toast.id} toast={toast} onClose={removeToast} />
+          ))}
+        </div>
+
+        {/* Confirmation Dialog */}
+        {isConfirmDialogOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-4 rounded shadow-lg">
+              <h2>Are you sure?</h2>
+              <div className="mt-4 flex justify-end space-x-2">
+                <button
+                  onClick={() => {
+                    confirmAction?.();
+                    setIsConfirmDialogOpen(false);
+                  }}
+                  className="bg-red-500 text-white px-4 py-2 rounded"
+                >
+                  Confirm
+                </button>
+                <button
+                  onClick={() => setIsConfirmDialogOpen(false)}
+                  className="bg-gray-300 px-4 py-2 rounded"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Loading Overlay */}
+        {isLoading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-white"></div>
+          </div>
+        )}
       </DndProvider>
     </ErrorBoundary>
   );
