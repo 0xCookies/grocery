@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ProductForm } from './components/ProductForm';
@@ -10,6 +10,8 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useUndoRedo } from './hooks/useUndoRedo';
 import { useTheme } from './context/ThemeContext';
 import { CategoryManager } from './components/CategoryManager';
+import { ErrorBoundary } from 'react-error-boundary';
+import { debounce } from 'lodash';
 
 const App = () => {
   // State management
@@ -20,6 +22,12 @@ const App = () => {
   const [sortBy, setSortBy] = useLocalStorage('sortBy', 'name');
   const { isDarkMode, toggleTheme } = useTheme();
   const [categories, setCategories] = useLocalStorage('categories', ['Fruits', 'Vegetables', 'Dairy']);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const debouncedSetSearchTerm = useMemo(
+    () => debounce(setSearchTerm, 300),
+    [setSearchTerm]
+  );
 
   // Sync products with undo/redo state
   useEffect(() => {
@@ -60,15 +68,20 @@ const App = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [undo, redo]);
 
-  const handleAddProduct = (newProduct) => {
-    setProductState([
-      ...products,
-      {
-        ...newProduct,
-        id: Date.now(),
-        dateAdded: new Date().toISOString(),
-      }
-    ]);
+  const handleAddProduct = async (newProduct) => {
+    setIsLoading(true);
+    try {
+      setProductState([
+        ...products,
+        {
+          ...newProduct,
+          id: Date.now(),
+          dateAdded: new Date().toISOString(),
+        }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDeleteProduct = (id) => {
@@ -105,58 +118,61 @@ const App = () => {
   };
 
   const handleDeleteCategory = (categoryToDelete) => {
-    // Optional: Show confirmation dialog
-    if (window.confirm(`Are you sure you want to delete "${categoryToDelete}"? This will remove the category from all products.`)) {
-      setCategories(categories.filter(cat => cat !== categoryToDelete));
-      
-      // Update products that had this category
-      setProducts(products.map(product => 
+    if (window.confirm(`Are you sure you want to delete "${categoryToDelete}"?`)) {
+      // Batch state updates
+      const newCategories = categories.filter(cat => cat !== categoryToDelete);
+      const newProducts = products.map(product => 
         product.category === categoryToDelete 
           ? { ...product, category: '' }
           : product
-      ));
+      );
+      
+      setCategories(newCategories);
+      setProductState(newProducts);
     }
   };
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="min-h-screen">
-        <main className={`max-w-4xl mx-auto p-4 ${
-          isDarkMode ? 'dark bg-gray-900 text-white' : 'bg-white'
-        }`}>
-          <header className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Grocery App</h1>
-            <ThemeToggle />
-          </header>
+    <ErrorBoundary fallback={<div>Something went wrong</div>}>
+      <DndProvider backend={HTML5Backend}>
+        <div className="min-h-screen">
+          <main className={`max-w-4xl mx-auto p-4 ${
+            isDarkMode ? 'dark bg-gray-900 text-white' : 'bg-white'
+          }`}>
+            <header className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold">Grocery App</h1>
+              <ThemeToggle />
+            </header>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <section>
-              <ProductForm onAdd={handleAddProduct} categories={categories} />
-              <CategoryManager
-                categories={categories}
-                onAddCategory={handleAddCategory}
-                onEditCategory={handleEditCategory}
-                onDeleteCategory={handleDeleteCategory}
-              />
-            </section>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <section>
+                <ProductForm onAdd={handleAddProduct} categories={categories} />
+                <CategoryManager
+                  categories={categories}
+                  onAddCategory={handleAddCategory}
+                  onEditCategory={handleEditCategory}
+                  onDeleteCategory={handleDeleteCategory}
+                />
+              </section>
 
-            <section>
-              <SearchBar value={searchTerm} onChange={setSearchTerm} />
-              <CategoryFilter
-                categories={categories}
-                selected={filterCategory}
-                onChange={setFilterCategory}
-              />
-              <ProductList
-                products={filteredProducts}
-                onDelete={handleDeleteProduct}
-                onMove={handleMoveProduct}
-              />
-            </section>
-          </div>
-        </main>
-      </div>
-    </DndProvider>
+              <section>
+                <SearchBar value={searchTerm} onChange={setSearchTerm} />
+                <CategoryFilter
+                  categories={categories}
+                  selected={filterCategory}
+                  onChange={setFilterCategory}
+                />
+                <ProductList
+                  products={filteredProducts}
+                  onDelete={handleDeleteProduct}
+                  onMove={handleMoveProduct}
+                />
+              </section>
+            </div>
+          </main>
+        </div>
+      </DndProvider>
+    </ErrorBoundary>
   );
 };
 
